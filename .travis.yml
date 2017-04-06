@@ -1,10 +1,40 @@
 language: objective-c
 osx_image: xcode8.2
+xcode_project: BridgeAppSDK.xcodeproj
+xcode_scheme: BridgeAppSDK
+cache:
+- bundler
 before_install:
-  - brew update
+# - brew update
+- echo -e "machine github.com\n  login $CI_USER_TOKEN" >> ~/.netrc
+- "ls -al .."
+- "ls -al"
+- "security list-keychains"
+- "security find-identity -v -p codesigning"
 install:
-  - ./travis/install-fastlane.sh
-  - export PATH="$HOME/.fastlane/bin:$PATH"
+# - "brew cask install fastlane"
+# - "sudo gem install fastlane -NV"
+- "ruby -v"
+- "gem update fastlane"
+- "which fastlane"
+# - "./travis/install-fastlane.sh"
+# - export PATH="$HOME/.fastlane/bin:$PATH"
 script:
-  - ./travis/run-tests.sh
+- fastlane keychains
+- fastlane certificates
+- "security list-keychains"
+- "security find-identity -v -p codesigning"
+- fastlane archive scheme:"BridgeAppSDKSample" export_method:"enterprise"
+# - "./travis/build.sh"
+deploy:
+  skip_cleanup: true
+  provider: s3
+  access_key_id: AKIAICA2M6XGX62Q4NTQ
+  secret_access_key:
+    secure: GvE1gAmw8Nalw/4j1Id4WjaKWnYnzFLyBgcFyApbkd+2wegd8lgLzoHe+1x3X3mQhPWNtppr2EBG0RhvzuCRFQGvsZRjRVqo6oj7bjHv4jkfcxLrOmodxhIMrVq5SMlWVn2DrCYYXLFB9LlGcr1YVMzZ6YfHdSnEoswxglEluIWQgkNPYqhMHzcFV9M5kqbh1mfrkZ5rd7jfZHL96zP8KBd8uu0H+BD+ezMZvN80DhI0WzpXzu+EmPW+sHT1SKXEUvaHfHM6dxAPDz5pKwGjf9R0LadI5ePD1j70PNf1D1p5zXuPSsUY5Ew8nM50A+tEwjVPPAEh8ALSG29R/CebJjDW2yv1ugOGXG4kpyOIRgPwSKJTcfORrolevBDnKOIJmUbTGauCnDHs6GkFG4JUuvEaWqZkz5dbG3TdDgrxED7ZsA9wk/7QGFyGm480xriv2iWNMETaWesgNNIdEmjQUTI6hsbCxEzHqkAaANfaTibdKCgNJrkaz2v95fmRp3iON4uFbay5tRHOScOk128WRjhEtYwcoVqM5BTnI11zPRx2QuBpQMYPPqHcZ+HSEGK1ot0ywTuxqpTZq2vflF7zY58cAV/5xaZIGYl/wvaggeG+riy1+bgRD6Wawnl98ETyu0xUWoI/HL7FJ7JdKeXgb0UQpUYXUCzLegdCZNQ5UT0=
+  bucket: ios-apps.sagebridge.org
+  local-dir: build
+  upload-dir: ci/org.sagebase.BridgeAppSDK/latest
+  on:
+    branch: master
 
